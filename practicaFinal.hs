@@ -53,32 +53,59 @@ equivalencia (formula1 :<=>: formula2) =
 
 {-Ejercicio 4-}
 
-longitud :: [a] -> Int
-longitud [] = 0
-longitud (x:xs) = 1 + longitud xs
+negar :: Bool -> Bool
+negar False = True
+negar True = False
 
-combinacionesAux :: Int -> [[(Var, Bool)]]
-combinacionesAux 0 = [[]]  
-combinacionesAux n = 
-  let combinacionesPrevias = combinacionesAux (n - 1)  
-  in  [ (var, False) : xs | xs <- combinacionesPrevias ] ++ [ (var, True) : xs | xs <- combinacionesPrevias ]
+conjuncion :: Bool -> Bool -> Bool
+conjuncion True True = True
+conjuncion  _ _ = False
 
-combinaciones :: Formula -> [[(Var, Bool)]]
-combinaciones formula = combinacionesAux (longitud (variables formula))  
+
+disyuncion :: Bool -> Bool -> Bool
+disyuncion False False = False
+disyuncion _ _ = True
+
+
+condicional :: Bool -> Bool -> Bool
+condicional True False = False
+condicional _ _ = True
+
+bicondicional :: Bool -> Bool -> Bool
+bicondicional False True = False
+bicondicional True False = False
+bicondicional _ _ = True
+
+buscarInterpretacionVariable :: Var -> [(Var,Bool)] -> Bool
+buscarInterpretacionVariable v ((x,b):xs) = if v == x then b  else buscarInterpretacionVariable v xs
+
+interpretacion :: Formula  -> [(Var, Bool)]-> Bool
+interpretacion (Atom v) xs = buscarInterpretacionVariable v xs 
+interpretacion (Neg  t) xs = negar (interpretacion t xs)
+interpretacion (p :|: q) xs = disyuncion (interpretacion p xs) (interpretacion q xs)
+interpretacion (p :&: q ) xs = conjuncion (interpretacion p xs) (interpretacion q xs)
+interpretacion (p :=>: q) xs= condicional (interpretacion p xs) (interpretacion q xs)
+interpretacion (p :<=>: q) xs = bicondicional (interpretacion p xs) (interpretacion q xs)
 
 {-Ejercicio 5-}
 
-combinaciones :: Formula -> [[(Var, Bool)]]
-combinaciones formula =
-    let vars = variables formula
-    in sequence [[(var, False), (var, True)] | var <- vars]
+agregar :: a -> [[a]] -> [[a]]
+agregar x [] = []
+agregar x (y:ys) =  ((x:y):agregar x ys)
+
+aux :: [Var] -> [[(Var,Bool)]]
+aux [x] = [[(x,True)], [(x,False)]]
+aux (x:xs) = (agregar (x,True) (aux xs)) ++ (agregar (x,False) (aux xs))
+
+
+combinaciones :: Formula -> [[(Var,Bool)]]
+combinaciones p  = aux(variables p) 
 
 {-Ejercicio 6-}
 
-tablaDeVerdadCom :: Formula -> [[(Var, Bool)]] -> [([(Var, Bool)], Bool)]
-tablaDeVerdadCom formula [] = []
-tablaDeVerdadCom formula (x:xs) = (x, interpretacion formula x)
-(tablaDeVerdadCom formula xs)
+tablaDeVerdadCom :: [[(Var, Bool)]] ->  Formula -> [([(Var, Bool)], Bool)]
+tablaDeVerdadCom [] formula = []
+tablaDeVerdadCom (x:xs) formula = [(x,interpretacion formula x)] ++ tablaDeVerdadCom xs formula
 
 tablaDeVerdad :: Formula -> [([(Var, Bool)], Bool)]
-tablaDeVerdad formula = tablaDeVerdadCom formula (combinaciones formula)
+tablaDeVerdad formula = tablaDeVerdadCom (combinaciones formula) formula
