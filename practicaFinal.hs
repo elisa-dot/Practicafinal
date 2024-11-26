@@ -38,8 +38,6 @@ negacion (formula1 :|: formula2) = Neg formula1 :&: Neg formula2
 negacion (formula1 :=>: formula2) = negacion (Neg formula1 :|: formula2)
 negacion (formula1 :<=>: formula2) = negacion ((formula1 :=>: formula2) :&: (formula2 :=>: formula1))
 
-
-
 {-Ejercicio 3-}
 
 equivalencia :: Formula -> Formula
@@ -61,11 +59,9 @@ conjuncion :: Bool -> Bool -> Bool
 conjuncion True True = True
 conjuncion  _ _ = False
 
-
 disyuncion :: Bool -> Bool -> Bool
 disyuncion False False = False
 disyuncion _ _ = True
-
 
 condicional :: Bool -> Bool -> Bool
 condicional True False = False
@@ -97,15 +93,14 @@ aux :: [Var] -> [[(Var,Bool)]]
 aux [x] = [[(x,True)], [(x,False)]]
 aux (x:xs) = (agregar (x,True) (aux xs)) ++ (agregar (x,False) (aux xs))
 
-
 combinaciones :: Formula -> [[(Var,Bool)]]
-combinaciones p  = aux(variables p) 
+combinaciones p = aux(variables p) 
 
 {-Ejercicio 6-}
 
-tablaDeVerdadCom :: [[(Var, Bool)]] ->  Formula -> [([(Var, Bool)], Bool)]
-tablaDeVerdadCom [] formula = []
-tablaDeVerdadCom (x:xs) formula = [(x,interpretacion formula x)] ++ tablaDeVerdadCom xs formula
+tablaDeVerdadAux :: [[(Var, Bool)]] ->  Formula -> [([(Var, Bool)], Bool)]
+tablaDeVerdadAux [] formula = []
+tablaDeVerdadAux (x:xs) formula = [(x,interpretacion formula x)] ++ tablaDeVerdadAux xs formula
 
 tablaDeVerdad :: Formula -> [([(Var, Bool)], Bool)]
-tablaDeVerdad formula = tablaDeVerdadCom (combinaciones formula) formula
+tablaDeVerdad formula = tablaDeVerdadAux (combinaciones formula) formula
